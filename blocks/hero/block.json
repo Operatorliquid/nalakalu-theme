@@ -1,6 +1,6 @@
 {
   "apiVersion": 2,
-  "name": "nalakalu-hero",
+  "name": "nalakalu/hero",
   "title": "Hero Block",
   "category": "nalakalu",
   "icon": "cover-image",

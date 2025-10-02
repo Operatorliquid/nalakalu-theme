@@ -1,35 +1,4 @@
+/* Hero block styles - using Tailwind classes in the template */
 .hero-block {
-  position: relative;
-  min-height: 60vh;
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  text-align: center;
-}
-
-.hero-block__overlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4);
-}
-
-.hero-block__content {
-  position: relative;
-  z-index: 2;
-  max-width: 800px;
-  padding: 2rem;
-}
-
-.hero-block__title {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.hero-block__desc {
-  font-size: 1.25rem;
-  line-height: 1.6;
+  /* Tailwind classes are applied directly in the template */
 }

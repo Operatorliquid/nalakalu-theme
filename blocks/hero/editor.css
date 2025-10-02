@@ -1,11 +1,7 @@
 .hero-block {
-  border: 2px dashed #ccc;
-  padding: 4rem 2rem;
-  background: #f9f9f9;
-  text-align: center;
+  @apply border-2 border-dashed border-gray-300 p-16 bg-gray-50 text-center;
 }
 
 .hero-block__title {
-  font-size: 2rem;
-  color: #333;
+  @apply text-3xl text-gray-800;
 }
