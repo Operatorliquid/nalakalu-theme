@@ -1,7 +1,0 @@
-.hero-block {
-  @apply border-2 border-dashed border-gray-300 p-16 bg-gray-50 text-center;
-}
-
-.hero-block__title {
-  @apply font-heading-1 text-brown;
-}
