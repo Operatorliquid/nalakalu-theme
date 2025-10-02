@@ -24,11 +24,11 @@ $bg_url = $background && isset($background['url']) ? esc_url($background['url'])
     <div class="absolute inset-0 bg-black bg-opacity-40"></div>
     <div class="relative z-10 max-w-4xl px-8">
         <?php if ($title): ?>
-            <h1 class="text-5xl font-bold mb-4"><?php echo esc_html($title); ?></h1>
+            <h1 class="font-heading-1 text-white mb-4"><?php echo esc_html($title); ?></h1>
         <?php endif; ?>
 
         <?php if ($desc): ?>
-            <p class="text-xl leading-relaxed"><?php echo esc_html($desc); ?></p>
+            <p class="text-xl leading-relaxed text-white"><?php echo esc_html($desc); ?></p>
         <?php endif; ?>
     </div>
 </section>

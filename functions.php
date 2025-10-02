@@ -146,6 +146,12 @@ function nalakalu_scripts()
 	wp_enqueue_style('nalakalu-style', get_stylesheet_uri(), array(), _S_VERSION);
 	wp_style_add_data('nalakalu-style', 'rtl', 'replace');
 
+	// Enqueue Google Fonts - Fraunces
+	wp_enqueue_style('fraunces-font', 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap', array(), null);
+
+	// Enqueue custom utilities CSS
+	wp_enqueue_style('nalakalu-utilities', get_template_directory_uri() . '/assets/css/custom-utilities.css', array('fraunces-font'), _S_VERSION);
+
 	// Enqueue Tailwind CSS from CDN
 	wp_enqueue_script('tailwindcss', 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4', array(), '4.0.0', false);
 

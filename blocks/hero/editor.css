@@ -3,5 +3,5 @@
 }
 
 .hero-block__title {
-  @apply text-3xl text-gray-800;
+  @apply font-heading-1 text-brown;
 }
