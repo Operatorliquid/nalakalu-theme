@@ -135,6 +135,10 @@
   transition:.3s all;
 }
 
+.featured-section .product-row-link:last-of-type .row-products{
+  border-bottom: 0;
+}
+
 /* Hover sutil */
 .row-products:hover .product-description{ transform:scale(1.03); }
 .row-products:hover .product-title{ transform:scale(1.03); }

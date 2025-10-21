@@ -211,183 +211,6 @@ $collections_url = home_url('/colecciones/');
 </section>
 
 <script>
-(function () {
-  var carousel = document.getElementById('<?php echo esc_js($section_id); ?>-carousel');
-  var wrapper  = document.getElementById('<?php echo esc_js($section_id); ?>-wrapper');
-  if (!carousel || !wrapper) return;
-
-  // Anti ghost-drag en imágenes/anchors
-  wrapper.querySelectorAll('img, a').forEach(function (el) {
-    el.setAttribute('draggable', 'false');
-    el.addEventListener('dragstart', function (e) { e.preventDefault(); }, {passive:false});
-  });
-
-  // Helpers
-  function getX(){
-    var m = (wrapper.style.transform || '').match(/translateX\((-?\d+(?:\.\d+)?)px\)/);
-    return m ? parseFloat(m[1]) : 0;
-  }
-  function setX(v){ wrapper.style.transform = 'translateX(' + v + 'px)'; }
-  function clamp(val){
-    var maxScroll = -(wrapper.scrollWidth - carousel.clientWidth);
-    if (!isFinite(maxScroll)) maxScroll = 0;
-    return Math.max(maxScroll, Math.min(0, val));
-  }
-
-  // Suavidad
-  var SPEED = 1.4;          // sensibilidad de arrastre
-  var CLICK_THRESH = 6;     // px para considerar “hubo drag”
-  var velSamples = [];      // {x, t}
-  var rafId = 0;
-
-  function stopMomentum(){
-    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-  }
-
-  function startMomentum(v0){ // v0 en px/ms
-    stopMomentum();
-    var last = performance.now();
-    var v = v0;
-    rafId = requestAnimationFrame(function tick(now){
-      var dt = now - last; last = now;
-      // fricción (exponencial por frame)
-      var decayPer16 = 0.92; // 0.92–0.96 va bien
-      v *= Math.pow(decayPer16, dt / 16.67);
-
-      var cur = getX();
-      var next = clamp(cur + v * dt);
-      // Si pegamos contra los bordes, amortiguá extra
-      if (next === cur) v *= 0.3;
-
-      setX(next);
-
-      if (Math.abs(v) > 0.05) {
-        rafId = requestAnimationFrame(tick);
-      } else {
-        rafId = 0;
-      }
-    });
-  }
-
-  // Pointer Events + inercia
-  if (window.PointerEvent) {
-    var dragging = false;
-    var movedPx  = 0;
-    var startX   = 0;
-    var baseT    = 0;
-
-    // Cancela clicks cuando hubo drag
-    wrapper.addEventListener('click', function (e) {
-      if (movedPx > CLICK_THRESH) {
-        e.preventDefault(); e.stopPropagation();
-      }
-      movedPx = 0; // reset para la próxima
-    }, true);
-
-    wrapper.addEventListener('pointerdown', function (e) {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-
-      stopMomentum();
-
-      dragging = true;
-      movedPx  = 0;
-      velSamples.length = 0;
-
-      startX = e.clientX;
-      baseT  = getX();
-
-      wrapper.style.transition = 'none';
-      wrapper.classList.add('is-dragging');
-
-      if (wrapper.setPointerCapture) wrapper.setPointerCapture(e.pointerId);
-
-      // semilla de samples
-      velSamples.push({ x: e.clientX, t: e.timeStamp || performance.now() });
-    });
-
-    wrapper.addEventListener('pointermove', function (e) {
-      if (!dragging) return;
-
-      var dx = e.clientX - startX;
-      movedPx = Math.max(movedPx, Math.abs(dx));
-
-      var next = clamp(baseT + dx * SPEED);
-      setX(next);
-
-      // muestreo para velocidad (guardá últimos ~150ms)
-      var t = e.timeStamp || performance.now();
-      velSamples.push({ x: e.clientX, t: t });
-      var cutoff = t - 150;
-      while (velSamples.length > 2 && velSamples[0].t < cutoff) velSamples.shift();
-
-      e.preventDefault(); // evita selección/scroll
-    }, { passive:false });
-
-    function onEnd(e){
-      if (!dragging) return;
-      dragging = false;
-
-      if (wrapper.releasePointerCapture && e.pointerId != null) {
-        try { wrapper.releasePointerCapture(e.pointerId); } catch(_) {}
-      }
-
-      wrapper.classList.remove('is-dragging');
-      wrapper.style.transition = 'transform 0.3s ease-out';
-
-      // velocidad inicial para inercia (px/ms)
-      var v0 = 0;
-      if (velSamples.length >= 2) {
-        var a = velSamples[0], b = velSamples[velSamples.length - 1];
-        var dt = (b.t - a.t);
-        if (dt > 0) v0 = ((b.x - a.x) / dt) * SPEED;
-      }
-      // si hubo un pequeño flick, aplicá momentum
-      if (Math.abs(v0) > 0.05) startMomentum(v0);
-    }
-
-    wrapper.addEventListener('pointerup', onEnd);
-    wrapper.addEventListener('pointercancel', onEnd);
-    wrapper.addEventListener('pointerleave', function(e){ if (dragging) onEnd(e); });
-
-  } else {
-    // Fallback simple mouse/touch (sin inercia)
-    var isDown=false, moved=false, startX=0, baseT=0;
-
-    wrapper.addEventListener('click', function(e){
-      if (moved){ e.preventDefault(); e.stopPropagation(); }
-      moved = false;
-    }, true);
-
-    function md(e){ if (e.button!==0) return; stopMomentum(); isDown=true; moved=false;
-      startX=e.clientX; baseT=getX(); wrapper.style.transition='none'; wrapper.classList.add('is-dragging'); }
-    function mm(e){ if(!isDown) return; var dx=e.clientX-startX; moved = moved || Math.abs(dx)>CLICK_THRESH;
-      setX(clamp(baseT+dx*SPEED)); e.preventDefault(); }
-    function mu(){ isDown=false; wrapper.style.transition='transform .3s ease-out'; wrapper.classList.remove('is-dragging'); }
-
-    function ts(e){ stopMomentum(); isDown=true; moved=false; startX=e.touches[0].clientX; baseT=getX(); wrapper.style.transition='none'; wrapper.classList.add('is-dragging'); }
-    function tm(e){ if(!isDown) return; var dx=e.touches[0].clientX-startX; moved = moved || Math.abs(dx)>CLICK_THRESH;
-      setX(clamp(baseT+dx*SPEED)); e.preventDefault(); }
-    function te(){ isDown=false; wrapper.style.transition='transform .3s ease-out'; wrapper.classList.remove('is-dragging'); }
-
-    carousel.addEventListener('mousedown', md);
-    window.addEventListener('mousemove', mm, {passive:false});
-    window.addEventListener('mouseup', mu);
-
-    carousel.addEventListener('touchstart', ts, {passive:true});
-    window.addEventListener('touchmove', tm, {passive:false});
-    window.addEventListener('touchend', te);
-  }
-
-  // Hints de performance/UX
-  wrapper.style.willChange = 'transform';
-  wrapper.style.touchAction = 'pan-y'; // permite scroll vertical en móviles
-})();
-</script>
-
-
-
-
-<script>
 (() => {
   const els = document.querySelectorAll('.product-badge');
 
@@ -409,5 +232,148 @@ $collections_url = home_url('/colecciones/');
   }, { passive: true });
 
   update(); // estado inicial
+})();
+</script>
+<script>
+(function () {
+  var carousel = document.getElementById('<?php echo esc_js($section_id); ?>-carousel');
+  var wrapper  = document.getElementById('<?php echo esc_js($section_id); ?>-wrapper');
+  if (!carousel || !wrapper) return;
+
+  // Evitá drag nativo de imágenes y anchors (ghost drag)
+  wrapper.querySelectorAll('img').forEach(function (img) {
+    img.setAttribute('draggable', 'false');
+    img.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  });
+  wrapper.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  });
+
+  // ---- Helpers
+  function getTranslateX() {
+    var m = (wrapper.style.transform || '').match(/translateX\((-?\d+(?:\.\d+)?)px\)/);
+    return m ? parseFloat(m[1]) : 0;
+  }
+  function clamp(val){
+    var maxScroll = -(wrapper.scrollWidth - carousel.clientWidth);
+    if (!isFinite(maxScroll)) maxScroll = 0;
+    return Math.max(maxScroll, Math.min(0, val));
+  }
+
+  // ---- Pointer Events (moderno y confiable)
+  if (window.PointerEvent) {
+    var dragging = false;
+    var moved    = false;
+    var startX   = 0;
+    var startT   = 0;
+
+    // Bloquea clicks si hubo drag
+    wrapper.addEventListener('click', function (e) {
+      if (moved) {
+        e.preventDefault();
+        e.stopPropagation();
+        moved = false; // resetea para el próximo interaction
+      }
+    }, true);
+
+    wrapper.addEventListener('pointerdown', function (e) {
+      // Solo botón izq si es mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+      dragging = true;
+      moved = false;
+
+      startX = e.clientX;
+      startT = getTranslateX();
+
+      wrapper.style.transition = 'none';
+
+      // Capturamos el puntero para seguir recibiendo los moves aunque salgas del wrapper
+      if (wrapper.setPointerCapture) wrapper.setPointerCapture(e.pointerId);
+    });
+
+    wrapper.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+
+      var dx   = e.clientX - startX;
+      if (Math.abs(dx) > 3) moved = true;
+
+      var next = clamp(startT + dx * 1.5);
+      wrapper.style.transform = 'translateX(' + next + 'px)';
+
+      // Evita selección y scroll mientras se arrastra
+      e.preventDefault();
+    }, { passive: false });
+
+    function endPointer(e){
+      if (!dragging) return;
+      dragging = false;
+      if (wrapper.releasePointerCapture && e.pointerId != null) {
+        try { wrapper.releasePointerCapture(e.pointerId); } catch(_) {}
+      }
+      wrapper.style.transition = 'transform 0.3s ease-out';
+      // el click se cancela en el handler de click si moved === true
+    }
+
+    wrapper.addEventListener('pointerup', endPointer);
+    wrapper.addEventListener('pointercancel', endPointer);
+
+  } else {
+    // ---- Fallback Mouse/Touch (por si no hay Pointer Events)
+    var isDown = false, moved = false, startX = 0, startT = 0;
+
+    wrapper.addEventListener('click', function (e) {
+      if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; }
+    }, true);
+
+    function onMouseDown(e){
+      if (e.button !== 0) return;
+      isDown = true; moved = false;
+      startX = e.clientX;
+      startT = getTranslateX();
+      wrapper.style.transition = 'none';
+    }
+    function onMouseMove(e){
+      if (!isDown) return;
+      var dx = e.clientX - startX;
+      if (Math.abs(dx) > 3) moved = true;
+      var next = clamp(startT + dx * 1.5);
+      wrapper.style.transform = 'translateX(' + next + 'px)';
+      e.preventDefault();
+    }
+    function onMouseUp(){
+      isDown = false;
+      wrapper.style.transition = 'transform 0.3s ease-out';
+    }
+
+    function onTouchStart(e){
+      isDown = true; moved = false;
+      startX = e.touches[0].clientX;
+      startT = getTranslateX();
+      wrapper.style.transition = 'none';
+    }
+    function onTouchMove(e){
+      if (!isDown) return;
+      var dx = e.touches[0].clientX - startX;
+      if (Math.abs(dx) > 3) moved = true;
+      var next = clamp(startT + dx * 1.5);
+      wrapper.style.transform = 'translateX(' + next + 'px)';
+      e.preventDefault();
+    }
+    function onTouchEnd(){
+      isDown = false;
+      wrapper.style.transition = 'transform 0.3s ease-out';
+    }
+
+    // Mouse
+    carousel.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove, { passive: false });
+    window.addEventListener('mouseup', onMouseUp);
+
+    // Touch
+    carousel.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+  }
 })();
 </script>
