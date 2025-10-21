@@ -1,0 +1,90 @@
+/* Custom Font Utilities for Nalakalu Theme */
+
+/* Font Family */
+.font-fraunces {
+  font-family: "Fraunces 72pt", serif;
+}
+
+/* Heading Display */
+.font-heading-display {
+  font-family: "Fraunces 72pt", serif;
+  font-size: 12.8rem; /* 128px */
+  font-weight: 400;
+  line-height: normal;
+  text-transform: uppercase;
+}
+
+/* Heading 1 */
+.font-heading-1 {
+  font-family: "Fraunces 72pt", serif;
+  font-size: 8.4rem; /* 84px */
+  font-weight: 300;
+  line-height: 9.6rem; /* 96px */
+  text-transform: uppercase;
+}
+
+/* Heading 2 */
+.font-heading-2 {
+  font-family: "Fraunces 72pt", serif;
+  font-size: 6.4rem; /* 64px */
+  font-weight: 300;
+  line-height: 8.4rem; /* 84px */
+}
+
+/* Custom Colors */
+.text-brown {
+  color: #3D332B;
+}
+
+.text-beige {
+  color: #D7C5B4;
+}
+
+.bg-brown {
+  background-color: #3D332B;
+}
+
+.bg-beige {
+  background-color: #D7C5B4;
+}
+
+.border-brown {
+  border-color: #3D332B;
+}
+
+.border-beige {
+  border-color: #D7C5B4;
+}
+
+/* Responsive Font Sizes */
+@media (max-width: 768px) {
+  .font-heading-display {
+    font-size: 8rem; /* 80px on mobile */
+  }
+  
+  .font-heading-1 {
+    font-size: 5.6rem; /* 56px on mobile */
+    line-height: 6.4rem; /* 64px on mobile */
+  }
+  
+  .font-heading-2 {
+    font-size: 4.8rem; /* 48px on mobile */
+    line-height: 6rem; /* 60px on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .font-heading-display {
+    font-size: 6.4rem; /* 64px on small mobile */
+  }
+  
+  .font-heading-1 {
+    font-size: 4.8rem; /* 48px on small mobile */
+    line-height: 5.6rem; /* 56px on small mobile */
+  }
+  
+  .font-heading-2 {
+    font-size: 3.6rem; /* 36px on small mobile */
+    line-height: 4.8rem; /* 48px on small mobile */
+  }
+}
